@@ -49,14 +49,16 @@ func TestCreateShortURLHandler(t *testing.T) {
 
 			result := w.Result()
 
+			// Закрываем тело ответа после проверки
+			defer result.Body.Close()
+
 			assert.Equal(t, tt.want.statusCode, result.StatusCode)
+			// Проверка на точное совпадение заголовка Content-Type
 			assert.Equal(t, tt.want.contentType, result.Header.Get("Content-Type"))
 
 			if tt.want.statusCode == http.StatusCreated {
 				body, err := io.ReadAll(result.Body)
 				require.NoError(t, err)
-				require.NoError(t, result.Body.Close())
-
 				shortURL := string(body)
 				assert.True(t, strings.HasPrefix(shortURL, "http://localhost:8080/"))
 			}
@@ -104,6 +106,9 @@ func TestRedirectHandler(t *testing.T) {
 			r.ServeHTTP(w, request)
 
 			result := w.Result()
+
+			// Закрываем тело ответа после проверки
+			defer result.Body.Close()
 
 			assert.Equal(t, tt.want.statusCode, result.StatusCode)
 			if tt.want.location != "" {
