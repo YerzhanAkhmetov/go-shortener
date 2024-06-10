@@ -67,7 +67,7 @@ func TestCreateShortURLHandler(t *testing.T) {
 // Тест для redirectHandler
 func TestRedirectHandler(t *testing.T) {
 	// Предварительно добавляем URL в хранилище
-	urlStore["test1"] = "http://example.com"
+	urlStore["test1"] = "https://practicum.yandex.ru/"
 
 	type want struct {
 		statusCode int
@@ -83,7 +83,7 @@ func TestRedirectHandler(t *testing.T) {
 			request: "/test1",
 			want: want{
 				statusCode: http.StatusTemporaryRedirect,
-				location:   "http://example.com",
+				location:   "https://practicum.yandex.ru/",
 			},
 		},
 		{
