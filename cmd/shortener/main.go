@@ -38,12 +38,12 @@ func createShortURLHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Ошибка генерации URL ID", http.StatusInternalServerError)
 		return
 	}
-	//Помещаем в хранилище
+	// Помещаем в хранилище
 	urlStore[id] = originalURL
 
 	shortURL := fmt.Sprintf("http://localhost:8080/%s", id)
+	w.Header().Set("Content-Type", "text/plain") // Устанавливаем заголовок до записи статуса
 	w.WriteHeader(http.StatusCreated)
-	w.Header().Set("Content-Type", "text/plain")
 	_, _ = w.Write([]byte(shortURL))
 }
 
@@ -57,7 +57,7 @@ func redirectHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "URL не найден", http.StatusNotFound)
 		return
 	}
-
+	//Добавляем в заголовок Location и ссылку URL
 	w.Header().Set("Location", originalURL)
 	w.WriteHeader(http.StatusTemporaryRedirect)
 }
