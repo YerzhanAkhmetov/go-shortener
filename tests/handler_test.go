@@ -1,4 +1,4 @@
-package main
+package tests
 
 import (
 	"io"
@@ -7,13 +7,24 @@ import (
 	"strings"
 	"testing"
 
+	handlers "github.com/YerzhanAkhmetov/go-shortener/internal/handler"
+	"github.com/YerzhanAkhmetov/go-shortener/internal/repository"
+	"github.com/YerzhanAkhmetov/go-shortener/internal/storage"
+	"github.com/YerzhanAkhmetov/go-shortener/internal/usecase"
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-// Тест для createShortURLHandler
 func TestCreateShortURLHandler(t *testing.T) {
+	store := storage.NewMemoryStorage()
+	repo := repository.NewURLRepository(store)
+	urlUsecase := usecase.NewURLUsecase(repo)
+	h := handlers.NewHandler(urlUsecase)
+
+	r := mux.NewRouter()
+	r.HandleFunc("/", h.CreateShortURL).Methods("POST")
+
 	type want struct {
 		contentType string
 		statusCode  int
@@ -44,16 +55,12 @@ func TestCreateShortURLHandler(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			request := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(tt.body))
 			w := httptest.NewRecorder()
-			h := http.HandlerFunc(createShortURLHandler)
-			h(w, request)
+			r.ServeHTTP(w, request)
 
 			result := w.Result()
-
-			// Закрываем тело ответа после проверки
 			defer result.Body.Close()
 
 			assert.Equal(t, tt.want.statusCode, result.StatusCode)
-			// Проверка на точное совпадение заголовка Content-Type
 			assert.Equal(t, tt.want.contentType, result.Header.Get("Content-Type"))
 
 			if tt.want.statusCode == http.StatusCreated {
@@ -66,10 +73,16 @@ func TestCreateShortURLHandler(t *testing.T) {
 	}
 }
 
-// Тест для redirectHandler
 func TestRedirectHandler(t *testing.T) {
-	// Предварительно добавляем URL в хранилище
-	urlStore["test1"] = "https://practicum.yandex.ru/"
+	store := storage.NewMemoryStorage()
+	repo := repository.NewURLRepository(store)
+	urlUsecase := usecase.NewURLUsecase(repo)
+	h := handlers.NewHandler(urlUsecase)
+
+	store.SaveURL("test1", "https://practicum.yandex.ru/")
+
+	r := mux.NewRouter()
+	r.HandleFunc("/{id}", h.Redirect).Methods("GET")
 
 	type want struct {
 		statusCode int
@@ -100,14 +113,9 @@ func TestRedirectHandler(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			request := httptest.NewRequest(http.MethodGet, tt.request, nil)
 			w := httptest.NewRecorder()
-
-			r := mux.NewRouter()
-			r.HandleFunc("/{id}", redirectHandler)
 			r.ServeHTTP(w, request)
 
 			result := w.Result()
-
-			// Закрываем тело ответа после проверки
 			defer result.Body.Close()
 
 			assert.Equal(t, tt.want.statusCode, result.StatusCode)
