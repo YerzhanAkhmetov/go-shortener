@@ -12,7 +12,7 @@ import (
 
 type Config struct {
 	Debug    bool   `env:"DEBUG" envDefault:"false"`
-	HTTPPort string `env:"HTTP_PORT" envDefault:"8080"`
+	HTTPPort string `env:"HTTP_PORT" envDefault:":8080"`
 	BaseURL  string `env:"BASE_URL" envDefault:"http://localhost:8080"`
 }
 
@@ -25,7 +25,7 @@ func LoadConfig() (*Config, error) {
 	}
 
 	// Override with command line arguments
-	flag.StringVar(&cfg.HTTPPort, "a", cfg.HTTPPort, "HTTP server address (e.g., localhost:8888)")
+	flag.StringVar(&cfg.HTTPPort, "a", cfg.HTTPPort, "HTTP server address (e.g., :8888)")
 	flag.StringVar(&cfg.BaseURL, "b", cfg.BaseURL, "Base URL for shortened links (e.g., http://localhost:8000)")
 
 	flag.Parse()
