@@ -22,15 +22,15 @@ import (
 
 func TestCreateShortURLHandler(t *testing.T) {
 	// Установка переменных окружения для тестов
-	os.Setenv("SERVER_ADDRESS", "localhost:8888")
-	os.Setenv("BASE_URL", "http://localhost:8080")
+	os.Setenv("SERVER_ADDRESS", "localhost:8080")
+	os.Setenv("BASE_URL", "http://localhost:8000")
 
 	// Создание временного хранилища, репозитория, usecase и обработчика
 	store := storage.NewMemoryStorage()
 	repo := repository.NewURLRepository(store)
 	urlUsecase := usecase.NewURLUsecase(repo)
 	cfg := &config.Config{
-		BaseURL: os.Getenv("BASE_URL"), // Использование переменной окружения для базового URL
+		BaseURL: os.Getenv("SERVER_ADDRESS"), // Использование переменной окружения для базового URL
 	}
 	h := handler.NewHandler(urlUsecase, cfg)
 
@@ -107,15 +107,15 @@ func TestCreateShortURLHandler(t *testing.T) {
 
 func TestRedirectHandler(t *testing.T) {
 	// Установка переменных окружения для тестов
-	os.Setenv("SERVER_ADDRESS", "localhost:8888")
-	os.Setenv("BASE_URL", "http://localhost:8080")
+	os.Setenv("SERVER_ADDRESS", "localhost:8080")
+	os.Setenv("BASE_URL", "http://localhost:8000")
 
 	// Создание временного хранилища, репозитория, usecase и обработчика
 	store := storage.NewMemoryStorage()
 	repo := repository.NewURLRepository(store)
 	urlUsecase := usecase.NewURLUsecase(repo)
 	cfg := &config.Config{
-		BaseURL: os.Getenv("BASE_URL"), // Использование переменной окружения для базового URL
+		BaseURL: os.Getenv("SERVER_ADDRESS"), // Использование переменной окружения для базового URL
 	}
 	h := handler.NewHandler(urlUsecase, cfg)
 
