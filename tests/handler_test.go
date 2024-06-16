@@ -14,6 +14,7 @@ import (
 	"github.com/YerzhanAkhmetov/go-shortener/internal/repository"
 	"github.com/YerzhanAkhmetov/go-shortener/internal/storage"
 	"github.com/YerzhanAkhmetov/go-shortener/internal/usecase"
+	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -22,12 +23,11 @@ func TestCreateShortURLHandler(t *testing.T) {
 	store := storage.NewMemoryStorage()
 	repo := repository.NewURLRepository(store)
 	urlUsecase := usecase.NewURLUsecase(repo)
-	cfg := &config.Config{} // Используем пустую конфигурацию
+	cfg := &config.Config{}
 	h := handler.NewHandler(urlUsecase, cfg)
 
-	// Создаем временный HTTP-сервер
-	server := httptest.NewServer(http.HandlerFunc(h.CreateShortURL))
-	defer server.Close()
+	r := mux.NewRouter()
+	r.HandleFunc("/", h.CreateShortURL).Methods("POST")
 
 	type want struct {
 		contentType string
@@ -61,15 +61,18 @@ func TestCreateShortURLHandler(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			resp, err := http.Post(server.URL, "text/plain", strings.NewReader(tt.body))
-			require.NoError(t, err)
-			defer resp.Body.Close()
+			request := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(tt.body))
+			w := httptest.NewRecorder()
+			r.ServeHTTP(w, request)
 
-			assert.Equal(t, tt.want.statusCode, resp.StatusCode)
-			assert.Equal(t, tt.want.contentType, resp.Header.Get("Content-Type"))
+			result := w.Result()
+			defer result.Body.Close()
+
+			assert.Equal(t, tt.want.statusCode, result.StatusCode)
+			assert.Equal(t, tt.want.contentType, result.Header.Get("Content-Type"))
 
 			if tt.want.body != nil {
-				body, err := io.ReadAll(resp.Body)
+				body, err := io.ReadAll(result.Body)
 				require.NoError(t, err)
 				expectedBody, err := json.Marshal(tt.want.body)
 				require.NoError(t, err)
@@ -83,14 +86,13 @@ func TestRedirectHandler(t *testing.T) {
 	store := storage.NewMemoryStorage()
 	repo := repository.NewURLRepository(store)
 	urlUsecase := usecase.NewURLUsecase(repo)
-	cfg := &config.Config{} // Используем пустую конфигурацию
+	cfg := &config.Config{}
 	h := handler.NewHandler(urlUsecase, cfg)
 
-	// Создаем временный HTTP-сервер
-	server := httptest.NewServer(http.HandlerFunc(h.Redirect))
-	defer server.Close()
-
 	store.SaveURL("test1", "https://practicum.yandex.ru/")
+
+	r := mux.NewRouter()
+	r.HandleFunc("/{id}", h.Redirect).Methods("GET")
 
 	type want struct {
 		statusCode int
@@ -123,15 +125,18 @@ func TestRedirectHandler(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			resp, err := http.Get(server.URL + tt.request)
-			require.NoError(t, err)
-			defer resp.Body.Close()
+			request := httptest.NewRequest(http.MethodGet, tt.request, nil)
+			w := httptest.NewRecorder()
+			r.ServeHTTP(w, request)
 
-			assert.Equal(t, tt.want.statusCode, resp.StatusCode)
+			result := w.Result()
+			defer result.Body.Close()
+
+			assert.Equal(t, tt.want.statusCode, result.StatusCode)
 			if tt.want.location != "" {
-				assert.Equal(t, tt.want.location, resp.Header.Get("Location"))
+				assert.Equal(t, tt.want.location, result.Header.Get("Location"))
 			} else if tt.want.body != nil {
-				body, err := io.ReadAll(resp.Body)
+				body, err := io.ReadAll(result.Body)
 				require.NoError(t, err)
 				expectedBody, err := json.Marshal(tt.want.body)
 				require.NoError(t, err)
