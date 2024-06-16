@@ -5,7 +5,6 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"strings"
 	"testing"
 
@@ -20,14 +19,13 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// TestCreateShortURLHandler проверяет обработчик CreateShortURL
 func TestCreateShortURLHandler(t *testing.T) {
 	// Создание временного хранилища, репозитория, usecase и обработчика
 	store := storage.NewMemoryStorage()
 	repo := repository.NewURLRepository(store)
 	urlUsecase := usecase.NewURLUsecase(repo)
 	cfg := &config.Config{
-		BaseURL: os.Getenv("BASE_URL"),
+		BaseURL: "http://localhost:8000", // Обновлено на базовый URL из .env файла
 	}
 	h := handler.NewHandler(urlUsecase, cfg)
 
@@ -89,7 +87,7 @@ func TestCreateShortURLHandler(t *testing.T) {
 				require.NoError(t, err)
 				shortURL := string(body)
 				// Проверка, что возвращенный короткий URL начинается с заданного базового URL
-				assert.True(t, strings.HasPrefix(shortURL, "http://localhost:8000/"))
+				assert.True(t, strings.HasPrefix(shortURL, cfg.BaseURL+"/"))
 			} else if tt.want.body != nil {
 				// Если ожидается тело с ошибкой, проверяем JSON формат тела ответа
 				body, err := io.ReadAll(result.Body)
@@ -102,14 +100,13 @@ func TestCreateShortURLHandler(t *testing.T) {
 	}
 }
 
-// TestRedirectHandler проверяет обработчик Redirect
 func TestRedirectHandler(t *testing.T) {
 	// Создание временного хранилища, репозитория, usecase и обработчика
 	store := storage.NewMemoryStorage()
 	repo := repository.NewURLRepository(store)
 	urlUsecase := usecase.NewURLUsecase(repo)
 	cfg := &config.Config{
-		BaseURL: os.Getenv("BASE_URL"),
+		BaseURL: "http://localhost:8000", // Обновлено на базовый URL из .env файла
 	}
 	h := handler.NewHandler(urlUsecase, cfg)
 
