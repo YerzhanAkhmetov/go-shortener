@@ -25,24 +25,17 @@ func setupTestServer(store *storage.MemoryStorage) *httptest.Server {
 	cfg := &config.Config{}
 	h := handler.NewHandler(urlUsecase, cfg)
 
-	r := mux.NewRouter()
-	r.HandleFunc("/", h.CreateShortURL).Methods("POST")
-	r.HandleFunc("/{id}", h.Redirect).Methods("GET")
+	router := mux.NewRouter()
+	router.HandleFunc("/", h.CreateShortURL).Methods("POST")
+	router.HandleFunc("/{id}", h.Redirect).Methods("GET")
 
-	return httptest.NewServer(r)
+	return httptest.NewServer(router)
 }
+
 func TestCreateShortURLHandler(t *testing.T) {
 	store := storage.NewMemoryStorage()
 	ts := setupTestServer(store)
 	defer ts.Close()
-
-	// repo := repository.NewURLRepository(store)
-	// urlUsecase := usecase.NewURLUsecase(repo)
-	// cfg := &config.Config{}
-	// h := handler.NewHandler(urlUsecase, cfg)
-
-	// r := mux.NewRouter()
-	// r.HandleFunc("/", h.CreateShortURL).Methods("POST")
 
 	type want struct {
 		contentType string
@@ -76,10 +69,7 @@ func TestCreateShortURLHandler(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			request, _ := http.NewRequest(http.MethodPost, ts.URL+"/", strings.NewReader(tt.body))
-			request.Header.Set("Content-Type", "text/plain")
-			client := &http.Client{}
-			resp, err := client.Do(request)
+			resp, err := http.Post(ts.URL+"/", "text/plain", strings.NewReader(tt.body))
 			require.NoError(t, err)
 			defer resp.Body.Close()
 
