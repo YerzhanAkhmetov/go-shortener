@@ -23,7 +23,7 @@ func TestCreateShortURLHandler(t *testing.T) {
 	store := storage.NewMemoryStorage()
 	repo := repository.NewURLRepository(store)
 	urlUsecase := usecase.NewURLUsecase(repo)
-	cfg := &config.Config{}
+	cfg := &config.Config{} // Используем пустую конфигурацию
 	h := handler.NewHandler(urlUsecase, cfg)
 
 	r := mux.NewRouter()
@@ -86,7 +86,7 @@ func TestRedirectHandler(t *testing.T) {
 	store := storage.NewMemoryStorage()
 	repo := repository.NewURLRepository(store)
 	urlUsecase := usecase.NewURLUsecase(repo)
-	cfg := &config.Config{}
+	cfg := &config.Config{} // Используем пустую конфигурацию
 	h := handler.NewHandler(urlUsecase, cfg)
 
 	store.SaveURL("test1", "https://practicum.yandex.ru/")
