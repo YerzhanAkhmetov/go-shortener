@@ -8,7 +8,6 @@ import (
 	"github.com/YerzhanAkhmetov/go-shortener/internal/config"
 	handler "github.com/YerzhanAkhmetov/go-shortener/internal/handler"
 	"github.com/YerzhanAkhmetov/go-shortener/internal/repository"
-	"github.com/YerzhanAkhmetov/go-shortener/internal/server"
 	"github.com/YerzhanAkhmetov/go-shortener/internal/storage"
 	"github.com/YerzhanAkhmetov/go-shortener/internal/usecase"
 	"github.com/gorilla/mux"
@@ -19,7 +18,7 @@ type App struct {
 	Config  *config.Config
 	Handler *handler.Handler
 	Router  *mux.Router
-	Server  *server.Server
+	Server  *http.Server
 }
 
 // NewApp инициализирует новый экземпляр приложения
@@ -33,18 +32,21 @@ func NewApp(cfg *config.Config) *App {
 	// Создание usecase для работы с URL
 	urlUsecase := usecase.NewURLUsecase(repo)
 
-	// Создание обработчика запросов
+	// Создание обработчика запросов с передачей конфигурации
 	handler := handler.NewHandler(urlUsecase, cfg)
 
 	// Создание маршрутизатора
 	router := mux.NewRouter()
 
-	// Создание сервера для обработки HTTP запросов
-	server := server.NewServer(handler)
-
 	// Настройка маршрутов для обработчика
 	router.HandleFunc("/", handler.CreateShortURL).Methods("POST")
 	router.HandleFunc("/{id}", handler.Redirect).Methods("GET")
+
+	// Создание сервера для обработки HTTP запросов
+	server := &http.Server{
+		Addr:    cfg.ServerAddress,
+		Handler: router,
+	}
 
 	return &App{
 		Config:  cfg,
@@ -56,12 +58,9 @@ func NewApp(cfg *config.Config) *App {
 
 // Run запускает сервер приложения
 func (app *App) Run() {
-	// Получение адреса сервера из конфигурации
-	addr := app.Config.HTTPPort
-
 	// Вывод сообщения о запуске сервера
-	fmt.Println("Starting server on " + addr)
+	fmt.Println("Starting server on " + app.Config.ServerAddress)
 
 	// Запуск сервера на указанном адресе с маршрутизатором приложения
-	log.Fatal(http.ListenAndServe(addr, app.Router))
+	log.Fatal(app.Server.ListenAndServe())
 }

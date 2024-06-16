@@ -10,9 +10,10 @@ import (
 
 // Config структура для хранения конфигурационных параметров
 type Config struct {
-	Debug    bool   `env:"DEBUG" envDefault:"false"`
-	HTTPPort string `env:"HTTP_PORT" envDefault:":8080"`
-	BaseURL  string `env:"BASE_URL" envDefault:"http://localhost:8080"`
+	Debug         bool   `env:"DEBUG" envDefault:"false"`
+	HTTPPort      string `env:"HTTP_PORT" envDefault:":8080"`
+	ServerAddress string `env:"SERVER_ADDRESS" envDefault:"localhost:8888"`
+	BaseURL       string `env:"BASE_URL" envDefault:"http://localhost:8000"`
 }
 
 // LoadConfig загружает конфигурацию из переменных окружения и аргументов командной строки
@@ -25,8 +26,8 @@ func LoadConfig() (*Config, error) {
 	}
 
 	// Переопределение параметров с помощью аргументов командной строки
-	flag.StringVar(&cfg.HTTPPort, "a", cfg.HTTPPort, "HTTP server address (e.g., :8888)")
-	flag.StringVar(&cfg.BaseURL, "b", cfg.BaseURL, "Base URL for shortened links (e.g., http://localhost:8000)")
+	flag.StringVar(&cfg.ServerAddress, "a", cfg.ServerAddress, "адрес запуска HTTP-сервера (например, localhost:8888)")
+	flag.StringVar(&cfg.BaseURL, "b", cfg.BaseURL, "Базовый URL для сокращенных ссылок (например, http://localhost:8000)")
 
 	flag.Parse()
 
