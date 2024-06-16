@@ -88,7 +88,7 @@ func TestCreateShortURLHandler(t *testing.T) {
 				require.NoError(t, err)
 				shortURL := string(body)
 				// Проверка, что возвращенный короткий URL начинается с заданного базового URL
-				assert.True(t, strings.HasPrefix(shortURL, "http://localhost:8080/"))
+				assert.True(t, strings.HasPrefix(shortURL, "http://localhost:8000/"))
 			} else if tt.want.body != nil {
 				// Если ожидается тело с ошибкой, проверяем JSON формат тела ответа
 				body, err := io.ReadAll(result.Body)
@@ -108,7 +108,7 @@ func TestRedirectHandler(t *testing.T) {
 	repo := repository.NewURLRepository(store)
 	urlUsecase := usecase.NewURLUsecase(repo)
 	cfg := &config.Config{
-		BaseURL: "http://localhost:8080",
+		BaseURL: "http://localhost:8000",
 	}
 	h := handler.NewHandler(urlUsecase, cfg)
 
