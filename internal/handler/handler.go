@@ -11,11 +11,13 @@ import (
 	"github.com/gorilla/mux"
 )
 
+// Handler обрабатывает HTTP запросы
 type Handler struct {
 	usecase usecase.URLUsecase // Использование usecase для бизнес-логики URL
 	config  *config.Config     // Конфигурация приложения
 }
 
+// NewHandler создает новый экземпляр Handler
 func NewHandler(usecase usecase.URLUsecase, cfg *config.Config) *Handler {
 	return &Handler{
 		usecase: usecase,

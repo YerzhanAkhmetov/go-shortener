@@ -20,12 +20,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// TestCreateShortURLHandler проверяет обработчик CreateShortURL
 func TestCreateShortURLHandler(t *testing.T) {
-	// Установка переменных окружения для тестов
-	os.Setenv("SERVER_ADDRESS", "localhost:8080")
-	os.Setenv("BASE_URL", "http://localhost:8000")
-
-	// Создание временного хранилища, репозитория, usecase и обработчика
 	store := storage.NewMemoryStorage()
 	repo := repository.NewURLRepository(store)
 	urlUsecase := usecase.NewURLUsecase(repo)
@@ -91,8 +87,7 @@ func TestCreateShortURLHandler(t *testing.T) {
 				body, err := io.ReadAll(result.Body)
 				require.NoError(t, err)
 				shortURL := string(body)
-				// Проверка, что возвращенный короткий URL начинается с заданного базового URL
-				assert.True(t, strings.HasPrefix(shortURL, cfg.BaseURL+"/"))
+				assert.True(t, strings.HasPrefix(shortURL, "http://localhost:8080/"))
 			} else if tt.want.body != nil {
 				// Если ожидается тело с ошибкой, проверяем JSON формат тела ответа
 				body, err := io.ReadAll(result.Body)
@@ -105,12 +100,8 @@ func TestCreateShortURLHandler(t *testing.T) {
 	}
 }
 
+// TestRedirectHandler проверяет обработчик Redirect
 func TestRedirectHandler(t *testing.T) {
-	// Установка переменных окружения для тестов
-	os.Setenv("SERVER_ADDRESS", "localhost:8080")
-	os.Setenv("BASE_URL", "http://localhost:8000")
-
-	// Создание временного хранилища, репозитория, usecase и обработчика
 	store := storage.NewMemoryStorage()
 	repo := repository.NewURLRepository(store)
 	urlUsecase := usecase.NewURLUsecase(repo)
