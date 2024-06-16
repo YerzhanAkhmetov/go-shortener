@@ -23,9 +23,9 @@ func LoadConfig() (*Config, error) {
 		return nil, fmt.Errorf("failed to parse env vars: %w", err)
 	}
 
-	// Переопределение параметров с помощью аргументов командной строки
-	flag.StringVar(&cfg.ServerAddress, "a", cfg.ServerAddress, "адрес запуска HTTP-сервера (например, localhost:8080)")
-	flag.StringVar(&cfg.BaseURL, "b", cfg.BaseURL, "Базовый URL для сокращенных ссылок (например, http://localhost:8000)")
+	// Override with command line arguments
+	flag.StringVar(&cfg.ServerAddress, "a", cfg.ServerAddress, "HTTP server address (e.g., :8888)")
+	flag.StringVar(&cfg.BaseURL, "b", cfg.BaseURL, "Base URL for shortened links (e.g., http://localhost:8000)")
 
 	flag.Parse()
 

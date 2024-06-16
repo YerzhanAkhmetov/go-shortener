@@ -11,13 +11,11 @@ import (
 	"github.com/gorilla/mux"
 )
 
-// Handler обрабатывает HTTP запросы для сокращения URL и их перенаправления.
 type Handler struct {
 	usecase usecase.URLUsecase // Использование usecase для бизнес-логики URL
 	config  *config.Config     // Конфигурация приложения
 }
 
-// NewHandler создает новый экземпляр Handler с заданным usecase и конфигурацией.
 func NewHandler(usecase usecase.URLUsecase, cfg *config.Config) *Handler {
 	return &Handler{
 		usecase: usecase,
