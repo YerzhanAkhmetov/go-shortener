@@ -5,13 +5,12 @@ import (
 	"fmt"
 
 	"github.com/caarlos0/env/v9"
-	_ "github.com/joho/godotenv/autoload"
 )
 
 // Config структура для хранения конфигурационных параметров
 type Config struct {
 	Debug         bool   `env:"DEBUG" envDefault:"false"`
-	ServerAddress string `env:"SERVER_ADDRESS" envDefault:"localhost:8888"`
+	ServerAddress string `env:"SERVER_ADDRESS" envDefault:"localhost:8080"`
 	BaseURL       string `env:"BASE_URL" envDefault:"http://localhost:8000"`
 }
 
@@ -25,7 +24,7 @@ func LoadConfig() (*Config, error) {
 	}
 
 	// Переопределение параметров с помощью аргументов командной строки
-	flag.StringVar(&cfg.ServerAddress, "a", cfg.ServerAddress, "адрес запуска HTTP-сервера (например, localhost:8888)")
+	flag.StringVar(&cfg.ServerAddress, "a", cfg.ServerAddress, "адрес запуска HTTP-сервера (например, localhost:8080)")
 	flag.StringVar(&cfg.BaseURL, "b", cfg.BaseURL, "Базовый URL для сокращенных ссылок (например, http://localhost:8000)")
 
 	flag.Parse()
