@@ -1,12 +1,14 @@
 package tests
 
 import (
+	"encoding/json"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
 
+	"github.com/YerzhanAkhmetov/go-shortener/internal/errs"
 	handlers "github.com/YerzhanAkhmetov/go-shortener/internal/handler"
 	"github.com/YerzhanAkhmetov/go-shortener/internal/repository"
 	"github.com/YerzhanAkhmetov/go-shortener/internal/storage"
@@ -28,6 +30,7 @@ func TestCreateShortURLHandler(t *testing.T) {
 	type want struct {
 		contentType string
 		statusCode  int
+		body        interface{}
 	}
 	tests := []struct {
 		name string
@@ -40,14 +43,16 @@ func TestCreateShortURLHandler(t *testing.T) {
 			want: want{
 				contentType: "text/plain",
 				statusCode:  http.StatusCreated,
+				body:        nil,
 			},
 		},
 		{
 			name: "empty body",
 			body: "",
 			want: want{
-				contentType: "text/plain; charset=utf-8",
+				contentType: "application/json",
 				statusCode:  http.StatusBadRequest,
+				body:        errs.NewError("Invalid request body", http.StatusBadRequest, "Bad Request"),
 			},
 		},
 	}
@@ -68,6 +73,12 @@ func TestCreateShortURLHandler(t *testing.T) {
 				require.NoError(t, err)
 				shortURL := string(body)
 				assert.True(t, strings.HasPrefix(shortURL, "http://localhost:8080/"))
+			} else if tt.want.body != nil {
+				body, err := io.ReadAll(result.Body)
+				require.NoError(t, err)
+				expectedBody, err := json.Marshal(tt.want.body)
+				require.NoError(t, err)
+				assert.JSONEq(t, string(expectedBody), string(body))
 			}
 		})
 	}
@@ -87,6 +98,7 @@ func TestRedirectHandler(t *testing.T) {
 	type want struct {
 		statusCode int
 		location   string
+		body       interface{}
 	}
 	tests := []struct {
 		name    string
@@ -99,6 +111,7 @@ func TestRedirectHandler(t *testing.T) {
 			want: want{
 				statusCode: http.StatusTemporaryRedirect,
 				location:   "https://practicum.yandex.ru/",
+				body:       nil,
 			},
 		},
 		{
@@ -106,6 +119,7 @@ func TestRedirectHandler(t *testing.T) {
 			request: "/nonexistent",
 			want: want{
 				statusCode: http.StatusNotFound,
+				body:       errs.NewError("URL not found", http.StatusNotFound, "Not Found"),
 			},
 		},
 	}
@@ -121,6 +135,12 @@ func TestRedirectHandler(t *testing.T) {
 			assert.Equal(t, tt.want.statusCode, result.StatusCode)
 			if tt.want.location != "" {
 				assert.Equal(t, tt.want.location, result.Header.Get("Location"))
+			} else if tt.want.body != nil {
+				body, err := io.ReadAll(result.Body)
+				require.NoError(t, err)
+				expectedBody, err := json.Marshal(tt.want.body)
+				require.NoError(t, err)
+				assert.JSONEq(t, string(expectedBody), string(body))
 			}
 		})
 	}
