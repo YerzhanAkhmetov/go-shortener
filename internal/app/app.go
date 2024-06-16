@@ -29,10 +29,14 @@ func NewApp(cfg *config.Config) *App {
 	store := storage.NewMemoryStorage()
 	repo := repository.NewURLRepository(store)
 	urlUsecase := usecase.NewURLUsecase(repo)
-	handler := handler.NewHandler(urlUsecase)
+	handler := handler.NewHandler(urlUsecase, cfg)
 
 	router := mux.NewRouter()
 	server := server.NewServer(handler)
+
+	// Настройка маршрутов
+	router.HandleFunc("/", handler.CreateShortURL).Methods("POST")
+	router.HandleFunc("/{id}", handler.Redirect).Methods("GET")
 
 	return &App{
 		Config:  cfg,
@@ -46,5 +50,5 @@ func NewApp(cfg *config.Config) *App {
 func (app *App) Run() {
 	addr := app.Config.HTTPPort
 	fmt.Println("Starting server on " + addr)
-	log.Fatal(http.ListenAndServe(addr, app.Server.Router))
+	log.Fatal(http.ListenAndServe(addr, app.Router))
 }

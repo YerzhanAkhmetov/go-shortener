@@ -1,3 +1,5 @@
+// internal/handlers/handler.go
+
 package handlers
 
 import (
@@ -5,17 +7,22 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/YerzhanAkhmetov/go-shortener/internal/errs" // Путь к пакету errs
+	"github.com/YerzhanAkhmetov/go-shortener/internal/config"
+	"github.com/YerzhanAkhmetov/go-shortener/internal/errs"
 	"github.com/YerzhanAkhmetov/go-shortener/internal/usecase"
 	"github.com/gorilla/mux"
 )
 
 type Handler struct {
 	usecase usecase.URLUsecase
+	config  *config.Config
 }
 
-func NewHandler(usecase usecase.URLUsecase) *Handler {
-	return &Handler{usecase: usecase}
+func NewHandler(usecase usecase.URLUsecase, cfg *config.Config) *Handler {
+	return &Handler{
+		usecase: usecase,
+		config:  cfg,
+	}
 }
 
 func (h *Handler) CreateShortURL(w http.ResponseWriter, r *http.Request) {
@@ -31,7 +38,7 @@ func (h *Handler) CreateShortURL(w http.ResponseWriter, r *http.Request) {
 		writeError(w, errs.NewError("Error generating URL ID", http.StatusInternalServerError, "Internal Server Error"))
 		return
 	}
-	shortURL := "http://localhost:8080/" + url.ID
+	shortURL := h.config.BaseURL + "/" + url.ID
 	w.Header().Set("Content-Type", "text/plain")
 	w.WriteHeader(http.StatusCreated)
 	_, _ = w.Write([]byte(shortURL))

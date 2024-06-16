@@ -1,3 +1,5 @@
+// internal/tests/handler_test.go
+
 package tests
 
 import (
@@ -8,8 +10,9 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/YerzhanAkhmetov/go-shortener/internal/config"
 	"github.com/YerzhanAkhmetov/go-shortener/internal/errs"
-	handlers "github.com/YerzhanAkhmetov/go-shortener/internal/handler"
+	handler "github.com/YerzhanAkhmetov/go-shortener/internal/handler"
 	"github.com/YerzhanAkhmetov/go-shortener/internal/repository"
 	"github.com/YerzhanAkhmetov/go-shortener/internal/storage"
 	"github.com/YerzhanAkhmetov/go-shortener/internal/usecase"
@@ -22,7 +25,10 @@ func TestCreateShortURLHandler(t *testing.T) {
 	store := storage.NewMemoryStorage()
 	repo := repository.NewURLRepository(store)
 	urlUsecase := usecase.NewURLUsecase(repo)
-	h := handlers.NewHandler(urlUsecase)
+	cfg := &config.Config{
+		BaseURL: "http://localhost:8080",
+	}
+	h := handler.NewHandler(urlUsecase, cfg)
 
 	r := mux.NewRouter()
 	r.HandleFunc("/", h.CreateShortURL).Methods("POST")
@@ -88,7 +94,10 @@ func TestRedirectHandler(t *testing.T) {
 	store := storage.NewMemoryStorage()
 	repo := repository.NewURLRepository(store)
 	urlUsecase := usecase.NewURLUsecase(repo)
-	h := handlers.NewHandler(urlUsecase)
+	cfg := &config.Config{
+		BaseURL: "http://localhost:8080",
+	}
+	h := handler.NewHandler(urlUsecase, cfg)
 
 	store.SaveURL("test1", "https://practicum.yandex.ru/")
 
