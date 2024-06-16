@@ -1,9 +1,6 @@
 package server
 
 import (
-	"fmt"
-	"net/http"
-
 	handlers "github.com/YerzhanAkhmetov/go-shortener/internal/handler"
 	"github.com/gorilla/mux"
 )
@@ -28,14 +25,14 @@ func NewServer(h *handlers.Handler, serverAddress, baseURL string) *Server {
 	}
 }
 
-// Run запускает HTTP сервер на указанном адресе
-func (s *Server) Run() {
-	// Логирование запуска сервера
-	fmt.Printf("Starting server on %s\n", s.ServerAddress)
+// // Run запускает HTTP сервер на указанном адресе
+// func (s *Server) Run() {
+// 	// Логирование запуска сервера
+// 	fmt.Printf("Starting server on %s\n", s.ServerAddress)
 
-	// Запуск HTTP сервера
-	err := http.ListenAndServe(s.ServerAddress, s.Router)
-	if err != nil {
-		fmt.Printf("Failed to start server: %v\n", err)
-	}
-}
+// 	// Запуск HTTP сервера
+// 	err := http.ListenAndServe(s.ServerAddress, s.Router)
+// 	if err != nil {
+// 		fmt.Printf("Failed to start server: %v\n", err)
+// 	}
+// }
