@@ -14,9 +14,6 @@ func main() {
 		log.Fatalf("failed to load config: %v", err)
 	}
 
-	// Логирование загруженной конфигурации для отладки
-	log.Printf("Loaded Config: %+v\n", cfg)
-
 	// Инициализация нового экземпляра приложения
 	application := app.NewApp(cfg)
 
