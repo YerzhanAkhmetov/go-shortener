@@ -10,6 +10,7 @@ import (
 // Config структура для хранения конфигурационных параметров
 type Config struct {
 	Debug         bool   `env:"DEBUG" envDefault:"false"`
+	HTTPPort      string `env:"HTTP_PORT" envDefault:"8000"`
 	ServerAddress string `env:"SERVER_ADDRESS" envDefault:"localhost:8080"`
 	BaseURL       string `env:"BASE_URL" envDefault:"http://localhost:8000"`
 }
@@ -24,7 +25,7 @@ func LoadConfig() (*Config, error) {
 	}
 
 	// Override with command line arguments
-	flag.StringVar(&cfg.ServerAddress, "a", cfg.ServerAddress, "HTTP server address (e.g., :8888)")
+	flag.StringVar(&cfg.HTTPPort, "a", cfg.HTTPPort, "HTTP server address (e.g., :8888)")
 	flag.StringVar(&cfg.BaseURL, "b", cfg.BaseURL, "Base URL for shortened links (e.g., http://localhost:8000)")
 
 	flag.Parse()
