@@ -40,7 +40,7 @@ func NewApp(cfg *config.Config) *App {
 	router := mux.NewRouter()
 
 	// Создание сервера для обработки HTTP запросов
-	server := server.NewServer(handler)
+	server := server.NewServer(handler, cfg.ServerAddress, cfg.BaseURL)
 
 	// Настройка маршрутов для обработчика
 	router.HandleFunc("/", handler.CreateShortURL).Methods("POST")
