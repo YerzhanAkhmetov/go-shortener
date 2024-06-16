@@ -44,7 +44,7 @@ func NewApp(cfg *config.Config) *App {
 
 // Run starts the application server
 func (app *App) Run() {
-	port := fmt.Sprintf(":%s", app.Config.HttpPort)
-	fmt.Println("Starting server on " + port)
-	log.Fatal(http.ListenAndServe(port, app.Server.Router))
+	addr := app.Config.HTTPPort
+	fmt.Println("Starting server on " + addr)
+	log.Fatal(http.ListenAndServe(addr, app.Server.Router))
 }
