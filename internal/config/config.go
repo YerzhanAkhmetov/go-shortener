@@ -10,7 +10,7 @@ import (
 // Config структура для хранения конфигурационных параметров
 type Config struct {
 	Debug         bool   `env:"DEBUG" envDefault:"false"`
-	HTTPPort      string `env:"HTTP_PORT" envDefault:"8080"`
+	HTTPPort      string `env:"HTTP_PORT" envDefault:":8080"`
 	ServerAddress string `env:"SERVER_ADDRESS" envDefault:"localhost:8080"`
 	BaseURL       string `env:"BASE_URL" envDefault:"http://localhost:8000"`
 }
