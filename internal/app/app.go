@@ -57,7 +57,7 @@ func NewApp(cfg *config.Config) *App {
 // Run запускает сервер приложения
 func (app *App) Run() {
 	addr := app.Config.ServerAddress
-	fmt.Println("Starting server on " + addr)
+	fmt.Println("Starting server on adddress " + addr)
 
 	// Запуск сервера на указанном адресе с маршрутизатором приложения
 	log.Fatal(http.ListenAndServe(addr, app.Router))
