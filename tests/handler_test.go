@@ -5,6 +5,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"strings"
 	"testing"
 
@@ -26,7 +27,7 @@ func TestCreateShortURLHandler(t *testing.T) {
 	repo := repository.NewURLRepository(store)
 	urlUsecase := usecase.NewURLUsecase(repo)
 	cfg := &config.Config{
-		BaseURL: "http://localhost:8080",
+		BaseURL: os.Getenv("BASE_URL"),
 	}
 	h := handler.NewHandler(urlUsecase, cfg)
 
@@ -108,7 +109,7 @@ func TestRedirectHandler(t *testing.T) {
 	repo := repository.NewURLRepository(store)
 	urlUsecase := usecase.NewURLUsecase(repo)
 	cfg := &config.Config{
-		BaseURL: "http://localhost:8000",
+		BaseURL: os.Getenv("BASE_URL"),
 	}
 	h := handler.NewHandler(urlUsecase, cfg)
 
