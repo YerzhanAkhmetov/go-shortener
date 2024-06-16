@@ -1,5 +1,3 @@
-// internal/app/app.go
-
 package app
 
 import (
@@ -16,7 +14,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-// App contains application components
+// App содержит компоненты приложения
 type App struct {
 	Config  *config.Config
 	Handler *handler.Handler
@@ -24,17 +22,27 @@ type App struct {
 	Server  *server.Server
 }
 
-// NewApp initializes a new App instance
+// NewApp инициализирует новый экземпляр приложения
 func NewApp(cfg *config.Config) *App {
+	// Создание хранилища данных в памяти
 	store := storage.NewMemoryStorage()
+
+	// Создание репозитория для работы с URL
 	repo := repository.NewURLRepository(store)
+
+	// Создание usecase для работы с URL
 	urlUsecase := usecase.NewURLUsecase(repo)
+
+	// Создание обработчика запросов
 	handler := handler.NewHandler(urlUsecase, cfg)
 
+	// Создание маршрутизатора
 	router := mux.NewRouter()
+
+	// Создание сервера для обработки HTTP запросов
 	server := server.NewServer(handler)
 
-	// Настройка маршрутов
+	// Настройка маршрутов для обработчика
 	router.HandleFunc("/", handler.CreateShortURL).Methods("POST")
 	router.HandleFunc("/{id}", handler.Redirect).Methods("GET")
 
@@ -46,9 +54,14 @@ func NewApp(cfg *config.Config) *App {
 	}
 }
 
-// Run starts the application server
+// Run запускает сервер приложения
 func (app *App) Run() {
+	// Получение адреса сервера из конфигурации
 	addr := app.Config.HTTPPort
+
+	// Вывод сообщения о запуске сервера
 	fmt.Println("Starting server on " + addr)
+
+	// Запуск сервера на указанном адресе с маршрутизатором приложения
 	log.Fatal(http.ListenAndServe(addr, app.Router))
 }

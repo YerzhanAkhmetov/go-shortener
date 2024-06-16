@@ -1,5 +1,3 @@
-// internal/tests/handler_test.go
-
 package tests
 
 import (

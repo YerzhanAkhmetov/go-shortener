@@ -1,5 +1,3 @@
-// internal/handlers/handler.go
-
 package handlers
 
 import (
@@ -13,11 +11,13 @@ import (
 	"github.com/gorilla/mux"
 )
 
+// Handler обрабатывает HTTP запросы
 type Handler struct {
 	usecase usecase.URLUsecase
 	config  *config.Config
 }
 
+// NewHandler создает новый экземпляр Handler
 func NewHandler(usecase usecase.URLUsecase, cfg *config.Config) *Handler {
 	return &Handler{
 		usecase: usecase,
@@ -25,6 +25,7 @@ func NewHandler(usecase usecase.URLUsecase, cfg *config.Config) *Handler {
 	}
 }
 
+// CreateShortURL обрабатывает запрос на создание короткой ссылки
 func (h *Handler) CreateShortURL(w http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(r.Body)
 	if err != nil || len(body) == 0 {
@@ -44,6 +45,7 @@ func (h *Handler) CreateShortURL(w http.ResponseWriter, r *http.Request) {
 	_, _ = w.Write([]byte(shortURL))
 }
 
+// Redirect обрабатывает запрос на перенаправление по короткой ссылке
 func (h *Handler) Redirect(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
@@ -56,6 +58,7 @@ func (h *Handler) Redirect(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusTemporaryRedirect)
 }
 
+// writeError отправляет HTTP ответ с ошибкой
 func writeError(w http.ResponseWriter, err *errs.Error) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(err.Code)
