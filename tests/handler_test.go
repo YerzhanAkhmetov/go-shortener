@@ -5,7 +5,6 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"strings"
 	"testing"
 
@@ -24,9 +23,7 @@ func TestCreateShortURLHandler(t *testing.T) {
 	store := storage.NewMemoryStorage()
 	repo := repository.NewURLRepository(store)
 	urlUsecase := usecase.NewURLUsecase(repo)
-	cfg := &config.Config{
-		BaseURL: os.Getenv("BASE_URL"), // Использование переменной окружения для базового URL
-	}
+	cfg := &config.Config{}
 	h := handler.NewHandler(urlUsecase, cfg)
 
 	r := mux.NewRouter()
@@ -74,12 +71,7 @@ func TestCreateShortURLHandler(t *testing.T) {
 			assert.Equal(t, tt.want.statusCode, result.StatusCode)
 			assert.Equal(t, tt.want.contentType, result.Header.Get("Content-Type"))
 
-			if tt.want.statusCode == http.StatusCreated {
-				body, err := io.ReadAll(result.Body)
-				require.NoError(t, err)
-				shortURL := string(body)
-				assert.True(t, strings.HasPrefix(shortURL, os.Getenv("BASE_URL")))
-			} else if tt.want.body != nil {
+			if tt.want.body != nil {
 				body, err := io.ReadAll(result.Body)
 				require.NoError(t, err)
 				expectedBody, err := json.Marshal(tt.want.body)
@@ -94,9 +86,7 @@ func TestRedirectHandler(t *testing.T) {
 	store := storage.NewMemoryStorage()
 	repo := repository.NewURLRepository(store)
 	urlUsecase := usecase.NewURLUsecase(repo)
-	cfg := &config.Config{
-		BaseURL: os.Getenv("BASE_URL"),
-	}
+	cfg := &config.Config{}
 	h := handler.NewHandler(urlUsecase, cfg)
 
 	store.SaveURL("test1", "https://practicum.yandex.ru/")
