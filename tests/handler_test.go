@@ -23,7 +23,7 @@ import (
 func TestCreateShortURLHandler(t *testing.T) {
 	// Установка переменных окружения для тестов
 	os.Setenv("SERVER_ADDRESS", "localhost:8888")
-	os.Setenv("BASE_URL", "http://localhost:8000")
+	os.Setenv("BASE_URL", "http://localhost:8080")
 
 	// Создание временного хранилища, репозитория, usecase и обработчика
 	store := storage.NewMemoryStorage()
@@ -108,7 +108,7 @@ func TestCreateShortURLHandler(t *testing.T) {
 func TestRedirectHandler(t *testing.T) {
 	// Установка переменных окружения для тестов
 	os.Setenv("SERVER_ADDRESS", "localhost:8888")
-	os.Setenv("BASE_URL", "http://localhost:8000")
+	os.Setenv("BASE_URL", "http://localhost:8080")
 
 	// Создание временного хранилища, репозитория, usecase и обработчика
 	store := storage.NewMemoryStorage()
