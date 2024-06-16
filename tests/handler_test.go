@@ -3,6 +3,7 @@ package tests
 import (
 	"encoding/json"
 	"io"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -24,6 +25,11 @@ func TestCreateShortURLHandler(t *testing.T) {
 	repo := repository.NewURLRepository(store)
 	urlUsecase := usecase.NewURLUsecase(repo)
 	cfg := &config.Config{}
+	cfg, err := config.LoadConfig()
+	if err != nil {
+		log.Fatalf("failed to load config: %v", err)
+	}
+
 	h := handler.NewHandler(urlUsecase, cfg)
 
 	r := mux.NewRouter()
@@ -87,6 +93,11 @@ func TestRedirectHandler(t *testing.T) {
 	repo := repository.NewURLRepository(store)
 	urlUsecase := usecase.NewURLUsecase(repo)
 	cfg := &config.Config{}
+	cfg, err := config.LoadConfig()
+	if err != nil {
+		log.Fatalf("failed to load config: %v", err)
+	}
+
 	h := handler.NewHandler(urlUsecase, cfg)
 
 	store.SaveURL("test1", "https://practicum.yandex.ru/")
