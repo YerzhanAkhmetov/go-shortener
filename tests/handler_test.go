@@ -19,8 +19,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestCreateShortURLHandler(t *testing.T) {
-	store := storage.NewMemoryStorage()
+func setupTestServer(store *storage.MemoryStorage) *httptest.Server {
 	repo := repository.NewURLRepository(store)
 	urlUsecase := usecase.NewURLUsecase(repo)
 	cfg := &config.Config{}
@@ -28,6 +27,22 @@ func TestCreateShortURLHandler(t *testing.T) {
 
 	r := mux.NewRouter()
 	r.HandleFunc("/", h.CreateShortURL).Methods("POST")
+	r.HandleFunc("/{id}", h.Redirect).Methods("GET")
+
+	return httptest.NewServer(r)
+}
+func TestCreateShortURLHandler(t *testing.T) {
+	store := storage.NewMemoryStorage()
+	ts := setupTestServer(store)
+	defer ts.Close()
+
+	// repo := repository.NewURLRepository(store)
+	// urlUsecase := usecase.NewURLUsecase(repo)
+	// cfg := &config.Config{}
+	// h := handler.NewHandler(urlUsecase, cfg)
+
+	// r := mux.NewRouter()
+	// r.HandleFunc("/", h.CreateShortURL).Methods("POST")
 
 	type want struct {
 		contentType string
@@ -61,18 +76,18 @@ func TestCreateShortURLHandler(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			request := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(tt.body))
-			w := httptest.NewRecorder()
-			r.ServeHTTP(w, request)
+			request, _ := http.NewRequest(http.MethodPost, ts.URL+"/", strings.NewReader(tt.body))
+			request.Header.Set("Content-Type", "text/plain")
+			client := &http.Client{}
+			resp, err := client.Do(request)
+			require.NoError(t, err)
+			defer resp.Body.Close()
 
-			result := w.Result()
-			defer result.Body.Close()
-
-			assert.Equal(t, tt.want.statusCode, result.StatusCode)
-			assert.Equal(t, tt.want.contentType, result.Header.Get("Content-Type"))
+			assert.Equal(t, tt.want.statusCode, resp.StatusCode)
+			assert.Equal(t, tt.want.contentType, resp.Header.Get("Content-Type"))
 
 			if tt.want.body != nil {
-				body, err := io.ReadAll(result.Body)
+				body, err := io.ReadAll(resp.Body)
 				require.NoError(t, err)
 				expectedBody, err := json.Marshal(tt.want.body)
 				require.NoError(t, err)
