@@ -1,9 +1,11 @@
 package handlers
 
 import (
+	"encoding/json"
 	"io"
 	"net/http"
 
+	"github.com/YerzhanAkhmetov/go-shortener/internal/errs" // Путь к пакету errs
 	"github.com/YerzhanAkhmetov/go-shortener/internal/usecase"
 	"github.com/gorilla/mux"
 )
@@ -19,14 +21,14 @@ func NewHandler(usecase usecase.URLUsecase) *Handler {
 func (h *Handler) CreateShortURL(w http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(r.Body)
 	if err != nil || len(body) == 0 {
-		http.Error(w, "Тело запроса не валидно", http.StatusBadRequest)
+		writeError(w, errs.NewError("Invalid request body", http.StatusBadRequest, "Bad Request"))
 		return
 	}
 	originalURL := string(body)
 
 	url, err := h.usecase.Create(originalURL)
 	if err != nil {
-		http.Error(w, "Ошибка генерации URL ID", http.StatusInternalServerError)
+		writeError(w, errs.NewError("Error generating URL ID", http.StatusInternalServerError, "Internal Server Error"))
 		return
 	}
 	shortURL := "http://localhost:8080/" + url.ID
@@ -40,9 +42,15 @@ func (h *Handler) Redirect(w http.ResponseWriter, r *http.Request) {
 	id := vars["id"]
 	url, exists := h.usecase.GetByID(id)
 	if !exists {
-		http.Error(w, "URL не найден", http.StatusNotFound)
+		writeError(w, errs.NewError("URL not found", http.StatusNotFound, "Not Found"))
 		return
 	}
 	w.Header().Set("Location", url.OriginalURL)
 	w.WriteHeader(http.StatusTemporaryRedirect)
+}
+
+func writeError(w http.ResponseWriter, err *errs.Error) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(err.Code)
+	json.NewEncoder(w).Encode(err)
 }
