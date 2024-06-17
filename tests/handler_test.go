@@ -3,7 +3,6 @@ package tests
 import (
 	"encoding/json"
 	"io"
-	"log"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -21,19 +20,25 @@ import (
 )
 
 func TestCreateShortURLHandler(t *testing.T) {
-	cfg, err := config.LoadConfig()
-	if err != nil {
-		log.Fatalf("failed to load config: %v", err)
+	// Создаем конфигурацию с использованием случайного порта и переопределенными адресом сервера и базовым URL
+	cfg := &config.Config{
+		Debug:         false,
+		HTTPPort:      ":0",                    // Используем случайный порт
+		ServerAddress: "localhost:8080",        // Переопределенный адрес сервера
+		BaseURL:       "http://localhost:8080", // Переопределенный базовый URL
 	}
 
+	// Создаем хранилище, репозиторий, usecase и хендлер
 	store := storage.NewMemoryStorage()
 	repo := repository.NewURLRepository(store)
 	urlUsecase := usecase.NewURLUsecase(repo)
 	h := handler.NewHandler(urlUsecase, cfg)
 
+	// Создаем маршрутизатор и добавляем хендлер для тестирования
 	r := mux.NewRouter()
 	r.HandleFunc("/", h.CreateShortURL).Methods("POST")
 
+	// Определяем ожидаемые результаты тестов
 	type want struct {
 		contentType string
 		statusCode  int
@@ -64,6 +69,7 @@ func TestCreateShortURLHandler(t *testing.T) {
 		},
 	}
 
+	// Проходим по всем тестовым случаям
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			request := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(tt.body))
@@ -73,6 +79,7 @@ func TestCreateShortURLHandler(t *testing.T) {
 			result := w.Result()
 			defer result.Body.Close()
 
+			// Проверяем ожидаемые результаты
 			assert.Equal(t, tt.want.statusCode, result.StatusCode)
 			assert.Equal(t, tt.want.contentType, result.Header.Get("Content-Type"))
 
@@ -88,21 +95,28 @@ func TestCreateShortURLHandler(t *testing.T) {
 }
 
 func TestRedirectHandler(t *testing.T) {
-	cfg, err := config.LoadConfig()
-	if err != nil {
-		log.Fatalf("failed to load config: %v", err)
+	// Создаем конфигурацию с использованием случайного порта и переопределенными адресом сервера и базовым URL
+	cfg := &config.Config{
+		Debug:         false,
+		HTTPPort:      ":0",                    // Используем случайный порт
+		ServerAddress: "localhost:8080",        // Переопределенный адрес сервера
+		BaseURL:       "http://localhost:8080", // Переопределенный базовый URL
 	}
 
+	// Создаем хранилище, репозиторий, usecase и хендлер
 	store := storage.NewMemoryStorage()
 	repo := repository.NewURLRepository(store)
 	urlUsecase := usecase.NewURLUsecase(repo)
 	h := handler.NewHandler(urlUsecase, cfg)
 
+	// Сохраняем тестовый URL в хранилище
 	store.SaveURL("test1", "https://practicum.yandex.ru/")
 
+	// Создаем маршрутизатор и добавляем хендлер для тестирования
 	r := mux.NewRouter()
 	r.HandleFunc("/{id}", h.Redirect).Methods("GET")
 
+	// Определяем ожидаемые результаты тестов
 	type want struct {
 		statusCode int
 		location   string
@@ -132,6 +146,7 @@ func TestRedirectHandler(t *testing.T) {
 		},
 	}
 
+	// Проходим по всем тестовым случаям
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			request := httptest.NewRequest(http.MethodGet, tt.request, nil)
@@ -141,6 +156,7 @@ func TestRedirectHandler(t *testing.T) {
 			result := w.Result()
 			defer result.Body.Close()
 
+			// Проверяем ожидаемые результаты
 			assert.Equal(t, tt.want.statusCode, result.StatusCode)
 			if tt.want.location != "" {
 				assert.Equal(t, tt.want.location, result.Header.Get("Location"))
