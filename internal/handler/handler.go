@@ -5,7 +5,6 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/YerzhanAkhmetov/go-shortener/internal/config"
 	"github.com/YerzhanAkhmetov/go-shortener/internal/errs"
 	"github.com/YerzhanAkhmetov/go-shortener/internal/usecase"
 	"github.com/gorilla/mux"
@@ -14,14 +13,15 @@ import (
 // Handler обрабатывает HTTP запросы
 type Handler struct {
 	usecase usecase.URLUsecase // Использование usecase для бизнес-логики URL
-	config  *config.Config     // Конфигурация приложения
+	BaseURL string
+	//config *config.Config // Конфигурация приложения
 }
 
 // NewHandler создает новый экземпляр Handler
-func NewHandler(usecase usecase.URLUsecase, cfg *config.Config) *Handler {
+func NewHandler(usecase usecase.URLUsecase, baseURL string) *Handler {
 	return &Handler{
 		usecase: usecase,
-		config:  cfg,
+		BaseURL: baseURL,
 	}
 }
 
@@ -39,7 +39,7 @@ func (h *Handler) CreateShortURL(w http.ResponseWriter, r *http.Request) {
 		writeError(w, errs.NewError("Error generating URL ID", http.StatusInternalServerError, "Internal Server Error"))
 		return
 	}
-	shortURL := h.config.BaseURL + "/" + url.ID
+	shortURL := h.BaseURL + "/" + url.ID
 	w.Header().Set("Content-Type", "text/plain")
 	w.WriteHeader(http.StatusCreated)
 	_, _ = w.Write([]byte(shortURL))

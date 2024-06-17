@@ -34,7 +34,7 @@ func NewApp(cfg *config.Config) *App {
 	urlUsecase := usecase.NewURLUsecase(repo)
 
 	// Создание обработчика запросов
-	handler := handler.NewHandler(urlUsecase, cfg)
+	handler := handler.NewHandler(urlUsecase, cfg.BaseURL)
 
 	// Создание маршрутизатора
 	router := mux.NewRouter()
