@@ -3,6 +3,7 @@ package tests
 import (
 	"encoding/json"
 	"io"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -21,11 +22,16 @@ import (
 
 func TestCreateShortURLHandler(t *testing.T) {
 	// Создаем конфигурацию с использованием случайного порта и переопределенными адресом сервера и базовым URL
+	// Получаем доступный порт
+	port, err := getAvailablePort()
+	require.NoError(t, err)
+
+	// Обновляем конфигурацию с новым портом
 	cfg := &config.Config{
 		Debug:         false,
-		HTTPPort:      ":0",                    // Используем случайный порт
-		ServerAddress: "localhost:8080",        // Переопределенный адрес сервера
-		BaseURL:       "http://localhost:8080", // Переопределенный базовый URL
+		HTTPPort:      ":" + port,
+		ServerAddress: "localhost:" + port,
+		BaseURL:       "http://localhost:" + port,
 	}
 
 	// Создаем хранилище, репозиторий, usecase и хендлер
@@ -95,12 +101,16 @@ func TestCreateShortURLHandler(t *testing.T) {
 }
 
 func TestRedirectHandler(t *testing.T) {
-	// Создаем конфигурацию с использованием случайного порта и переопределенными адресом сервера и базовым URL
+	// Получаем доступный порт
+	port, err := getAvailablePort()
+	require.NoError(t, err)
+
+	// Обновляем конфигурацию с новым портом
 	cfg := &config.Config{
 		Debug:         false,
-		HTTPPort:      ":0",                    // Используем случайный порт
-		ServerAddress: "localhost:8080",        // Переопределенный адрес сервера
-		BaseURL:       "http://localhost:8080", // Переопределенный базовый URL
+		HTTPPort:      ":" + port,
+		ServerAddress: "localhost:" + port,
+		BaseURL:       "http://localhost:" + port,
 	}
 
 	// Создаем хранилище, репозиторий, usecase и хендлер
@@ -169,4 +179,21 @@ func TestRedirectHandler(t *testing.T) {
 			}
 		})
 	}
+}
+
+func getAvailablePort() (string, error) {
+	// Создаем прослушиватель на случайном порту
+	listener, err := net.Listen("tcp", "localhost:0")
+	if err != nil {
+		return "", err
+	}
+	defer listener.Close()
+
+	// Получаем адрес прослушивателя и извлекаем порт
+	_, portStr, err := net.SplitHostPort(listener.Addr().String())
+	if err != nil {
+		return "", err
+	}
+
+	return portStr, nil
 }
