@@ -20,27 +20,19 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func setupTestServer(store *storage.MemoryStorage) *httptest.Server {
-	repo := repository.NewURLRepository(store)
-	urlUsecase := usecase.NewURLUsecase(repo)
-	// cfg := &config.Config{}
+func TestCreateShortURLHandler(t *testing.T) {
 	cfg, err := config.LoadConfig()
 	if err != nil {
 		log.Fatalf("failed to load config: %v", err)
 	}
+
+	store := storage.NewMemoryStorage()
+	repo := repository.NewURLRepository(store)
+	urlUsecase := usecase.NewURLUsecase(repo)
 	h := handler.NewHandler(urlUsecase, cfg)
 
-	router := mux.NewRouter()
-	router.HandleFunc("/", h.CreateShortURL).Methods("POST")
-	router.HandleFunc("/{id}", h.Redirect).Methods("GET")
-
-	return httptest.NewServer(router)
-}
-
-func TestCreateShortURLHandler(t *testing.T) {
-	store := storage.NewMemoryStorage()
-	ts := setupTestServer(store)
-	defer ts.Close()
+	r := mux.NewRouter()
+	r.HandleFunc("/", h.CreateShortURL).Methods("POST")
 
 	type want struct {
 		contentType string
@@ -74,15 +66,18 @@ func TestCreateShortURLHandler(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			resp, err := http.Post(ts.URL+"/", "text/plain", strings.NewReader(tt.body))
-			require.NoError(t, err)
-			defer resp.Body.Close()
+			request := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(tt.body))
+			w := httptest.NewRecorder()
+			r.ServeHTTP(w, request)
 
-			assert.Equal(t, tt.want.statusCode, resp.StatusCode)
-			assert.Equal(t, tt.want.contentType, resp.Header.Get("Content-Type"))
+			result := w.Result()
+			defer result.Body.Close()
+
+			assert.Equal(t, tt.want.statusCode, result.StatusCode)
+			assert.Equal(t, tt.want.contentType, result.Header.Get("Content-Type"))
 
 			if tt.want.body != nil {
-				body, err := io.ReadAll(resp.Body)
+				body, err := io.ReadAll(result.Body)
 				require.NoError(t, err)
 				expectedBody, err := json.Marshal(tt.want.body)
 				require.NoError(t, err)
@@ -93,10 +88,14 @@ func TestCreateShortURLHandler(t *testing.T) {
 }
 
 func TestRedirectHandler(t *testing.T) {
+	cfg, err := config.LoadConfig()
+	if err != nil {
+		log.Fatalf("failed to load config: %v", err)
+	}
+
 	store := storage.NewMemoryStorage()
 	repo := repository.NewURLRepository(store)
 	urlUsecase := usecase.NewURLUsecase(repo)
-	cfg := &config.Config{}
 	h := handler.NewHandler(urlUsecase, cfg)
 
 	store.SaveURL("test1", "https://practicum.yandex.ru/")
