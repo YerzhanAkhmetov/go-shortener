@@ -38,10 +38,5 @@ func LoadConfig() (*Config, error) {
 		return nil, fmt.Errorf("failed to parse env vars: %w", err)
 	}
 
-	// Проверяем, был ли установлен порт для тестов
-	if os.Getenv("SERVER_PORT") != "" {
-		cfg.ServerAddress = fmt.Sprintf("localhost:%s", os.Getenv("SERVER_PORT"))
-	}
-
 	return &cfg, nil
 }
