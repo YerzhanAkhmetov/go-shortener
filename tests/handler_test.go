@@ -3,11 +3,13 @@ package tests
 import (
 	"encoding/json"
 	"io"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
 
+	"github.com/YerzhanAkhmetov/go-shortener/internal/config"
 	"github.com/YerzhanAkhmetov/go-shortener/internal/errs"
 	handler "github.com/YerzhanAkhmetov/go-shortener/internal/handler"
 	"github.com/YerzhanAkhmetov/go-shortener/internal/repository"
@@ -21,15 +23,15 @@ import (
 const BaseURL = "http://localhost:8080"
 
 func TestCreateShortURLHandler(t *testing.T) {
-	//cfg, err := config.LoadConfig()
-	//if err != nil {
-	//	log.Fatalf("failed to load config: %v", err)
-	//}
+	cfg, err := config.LoadConfig()
+	if err != nil {
+		log.Fatalf("failed to load config: %v", err)
+	}
 
 	store := storage.NewMemoryStorage()
 	repo := repository.NewURLRepository(store)
 	urlUsecase := usecase.NewURLUsecase(repo)
-	h := handler.NewHandler(urlUsecase, BaseURL)
+	h := handler.NewHandler(urlUsecase, cfg.BaseURL)
 
 	r := mux.NewRouter()
 	r.HandleFunc("/", h.CreateShortURL).Methods("POST")
@@ -88,15 +90,15 @@ func TestCreateShortURLHandler(t *testing.T) {
 }
 
 func TestRedirectHandler(t *testing.T) {
-	//cfg, err := config.LoadConfig()
-	//if err != nil {
-	//	log.Fatalf("failed to load config: %v", err)
-	//}
+	cfg, err := config.LoadConfig()
+	if err != nil {
+		log.Fatalf("failed to load config: %v", err)
+	}
 
 	store := storage.NewMemoryStorage()
 	repo := repository.NewURLRepository(store)
 	urlUsecase := usecase.NewURLUsecase(repo)
-	h := handler.NewHandler(urlUsecase, BaseURL)
+	h := handler.NewHandler(urlUsecase, cfg.BaseURL)
 
 	store.SaveURL("test1", "https://practicum.yandex.ru/")
 
