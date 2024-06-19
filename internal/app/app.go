@@ -9,7 +9,6 @@ import (
 	shortHandler "github.com/YerzhanAkhmetov/go-shortener/internal/handler"
 	"github.com/YerzhanAkhmetov/go-shortener/internal/repository"
 	"github.com/YerzhanAkhmetov/go-shortener/internal/server"
-	shortServer "github.com/YerzhanAkhmetov/go-shortener/internal/server"
 	"github.com/YerzhanAkhmetov/go-shortener/internal/storage"
 	"github.com/YerzhanAkhmetov/go-shortener/internal/usecase"
 	"github.com/gorilla/mux"
@@ -20,7 +19,7 @@ type App struct {
 	Config  *config.Config
 	Handler *shortHandler.Handler
 	Router  *mux.Router
-	Server  *shortServer.Server
+	Server  *server.Server
 }
 
 // NewApp инициализирует новый экземпляр приложения
