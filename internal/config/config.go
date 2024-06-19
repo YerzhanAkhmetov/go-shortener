@@ -2,6 +2,7 @@ package config
 
 import (
 	"flag"
+	"fmt"
 	"os"
 
 	"github.com/caarlos0/env/v9"
@@ -29,14 +30,12 @@ func LoadConfig() (*Config, error) {
 
 	// Проверяем наличие файла .env и загружаем переменные из него
 	if err := godotenv.Load(); err != nil && !os.IsNotExist(err) {
-		panic(err)
-		//return nil, fmt.Errorf("failed to load .env file: %w", err)
+		return nil, fmt.Errorf("failed to load .env file: %w", err)
 	}
 
 	// Загрузка параметров из переменных окружения
 	if err := env.Parse(&cfg); err != nil {
-		panic(err)
-		//return nil, fmt.Errorf("failed to parse env vars: %w", err)
+		return nil, fmt.Errorf("failed to parse env vars: %w", err)
 	}
 
 	return &cfg, nil

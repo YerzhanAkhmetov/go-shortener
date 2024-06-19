@@ -6,9 +6,9 @@ import (
 	"net/http"
 
 	"github.com/YerzhanAkhmetov/go-shortener/internal/config"
-	handler "github.com/YerzhanAkhmetov/go-shortener/internal/handler"
+	shortHandler "github.com/YerzhanAkhmetov/go-shortener/internal/handler"
 	"github.com/YerzhanAkhmetov/go-shortener/internal/repository"
-	"github.com/YerzhanAkhmetov/go-shortener/internal/server"
+	shortServer "github.com/YerzhanAkhmetov/go-shortener/internal/server"
 	"github.com/YerzhanAkhmetov/go-shortener/internal/storage"
 	"github.com/YerzhanAkhmetov/go-shortener/internal/usecase"
 	"github.com/gorilla/mux"
@@ -17,9 +17,9 @@ import (
 // App содержит компоненты приложения
 type App struct {
 	Config  *config.Config
-	Handler *handler.Handler
+	Handler *shortHandler.Handler
 	Router  *mux.Router
-	Server  *server.Server
+	Server  *shortServer.Server
 }
 
 // NewApp инициализирует новый экземпляр приложения
@@ -34,13 +34,13 @@ func NewApp(cfg *config.Config) *App {
 	urlUsecase := usecase.NewURLUsecase(repo)
 
 	// Создание обработчика запросов
-	handler := handler.NewHandler(urlUsecase, cfg.BaseURL)
+	handler := shortHandler.NewHandler(urlUsecase, cfg.BaseURL)
 
 	// Создание маршрутизатора
 	router := mux.NewRouter()
 
 	// Создание сервера для обработки HTTP запросов
-	server := server.NewServer(handler, cfg.ServerAddress, cfg.BaseURL)
+	server := shortServer.NewServer(handler, cfg.ServerAddress, cfg.BaseURL)
 
 	// Настройка маршрутов для обработчика
 	router.HandleFunc("/", handler.CreateShortURL).Methods("POST")
