@@ -56,7 +56,7 @@ func NewApp(cfg *config.Config) *App {
 
 // Run запускает сервер приложения
 func (app *App) Run() {
-	addr := app.Config.ServerAddress
+	addr := app.Config.HTTPPort
 	fmt.Println("Starting server on adddress " + addr)
 
 	// Запуск сервера на указанном адресе с маршрутизатором приложения

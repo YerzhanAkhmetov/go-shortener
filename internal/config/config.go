@@ -23,8 +23,8 @@ func LoadConfig() (*Config, error) {
 
 	// Override with command line arguments
 	// flag.StringVar(&cfg.HTTPPort, "p", cfg.HTTPPort, "HTTP port (e.g., :8080)")
-	flag.StringVar(&cfg.ServerAddress, "a", "localhost:8080", "HTTP server address (e.g., localhost:8000)")
-	flag.StringVar(&cfg.BaseURL, "b", "http://localhost:8080", "Base URL for shortened links (e.g., http://localhost:8888)")
+	flag.StringVar(&cfg.ServerAddress, "a", cfg.ServerAddress, "HTTP server address (e.g., localhost:8000)")
+	flag.StringVar(&cfg.BaseURL, "b", cfg.BaseURL, "Base URL for shortened links (e.g., http://localhost:8888)")
 
 	flag.Parse()
 
