@@ -13,15 +13,13 @@ type Server struct {
 }
 
 // NewServer создает новый экземпляр сервера с заданным обработчиком, адресом сервера и базовым URL
-func NewServer(h *handlers.Handler, serverAddress, baseURL string) *Server {
+func NewServer(h *handlers.Handler) *Server {
 	router := mux.NewRouter()
 	router.HandleFunc("/", h.CreateShortURL).Methods("POST")
 	router.HandleFunc("/{id}", h.Redirect).Methods("GET")
 
 	return &Server{
-		Router:        router,
-		ServerAddress: serverAddress,
-		BaseURL:       baseURL,
+		Router: router,
 	}
 }
 

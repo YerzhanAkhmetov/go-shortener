@@ -8,6 +8,7 @@ import (
 	"github.com/YerzhanAkhmetov/go-shortener/internal/config"
 	shortHandler "github.com/YerzhanAkhmetov/go-shortener/internal/handler"
 	"github.com/YerzhanAkhmetov/go-shortener/internal/repository"
+	"github.com/YerzhanAkhmetov/go-shortener/internal/server"
 	shortServer "github.com/YerzhanAkhmetov/go-shortener/internal/server"
 	"github.com/YerzhanAkhmetov/go-shortener/internal/storage"
 	"github.com/YerzhanAkhmetov/go-shortener/internal/usecase"
@@ -40,7 +41,8 @@ func NewApp(cfg *config.Config) *App {
 	router := mux.NewRouter()
 
 	// Создание сервера для обработки HTTP запросов
-	server := shortServer.NewServer(handler, cfg.ServerAddress, cfg.BaseURL)
+	// Создание сервера для обработки HTTP запросов
+	server := server.NewServer(handler)
 
 	// Настройка маршрутов для обработчика
 	router.HandleFunc("/", handler.CreateShortURL).Methods("POST")
@@ -56,9 +58,17 @@ func NewApp(cfg *config.Config) *App {
 
 // Run запускает сервер приложения
 func (app *App) Run() {
-	addr := app.Config.HTTPPort
-	fmt.Println("Starting server on adddress " + addr)
+	// Получение адреса сервера из конфигурации
+	addr := ":" + app.Config.HTTPPort
+	// Проверка наличия порта в ServerAddress
+	// addr := app.Config.ServerAddress
+	// if !strings.Contains(addr, ":") {
+	// 	addr = addr + ":" + app.Config.HTTPPort
+	// }
+
+	fmt.Println("Starting server on address " + addr)
 
 	// Запуск сервера на указанном адресе с маршрутизатором приложения
+	// log.Fatal(http.ListenAndServe(addr, app.Router))
 	log.Fatal(http.ListenAndServe(addr, app.Router))
 }
