@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/YerzhanAkhmetov/go-shortener/internal/logger"
 	"log"
 
 	"github.com/YerzhanAkhmetov/go-shortener/internal/app"
@@ -12,6 +13,10 @@ func main() {
 	cfg, err := config.LoadConfig()
 	if err != nil {
 		log.Fatalf("failed to load config: %v", err)
+	}
+
+	if err := logger.Initialize(cfg.LogLevel); err != nil {
+		panic(err)
 	}
 
 	// Инициализация нового экземпляра приложения

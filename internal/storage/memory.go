@@ -5,7 +5,7 @@ type MemoryStorage struct {
 }
 
 func NewMemoryStorage() *MemoryStorage {
-	return &MemoryStorage{urlStore: make(map[string]string)}
+	return &MemoryStorage{make(map[string]string)}
 }
 
 func (m *MemoryStorage) SaveURL(id, url string) {
