@@ -13,7 +13,7 @@ import (
 	"github.com/YerzhanAkhmetov/go-shortener/internal/repository"
 	"github.com/YerzhanAkhmetov/go-shortener/internal/storage"
 	"github.com/YerzhanAkhmetov/go-shortener/internal/usecase"
-	"github.com/gorilla/mux"
+	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -21,18 +21,16 @@ import (
 const BaseURL = "http://localhost:8080"
 
 func TestCreateShortURLHandler(t *testing.T) {
-	//cfg, err := config.LoadConfig()
-	//if err != nil {
-	//	log.Fatalf("failed to load config: %v", err)
-	//}
-
+	// Инициализация хранилища, репозитория и usecase
 	store := storage.NewMemoryStorage()
 	repo := repository.NewURLRepository(store)
 	urlUsecase := usecase.NewURLUsecase(repo)
 	h := handler.NewHandler(urlUsecase, BaseURL)
 
-	r := mux.NewRouter()
-	r.HandleFunc("/", h.CreateShortURL).Methods("POST")
+	// Инициализация Gin маршрутов
+	gin.SetMode(gin.TestMode)
+	router := gin.Default()
+	router.POST("/", h.CreateShortURL)
 
 	type want struct {
 		contentType string
@@ -48,7 +46,7 @@ func TestCreateShortURLHandler(t *testing.T) {
 			name: "valid URL",
 			body: "https://practicum.yandex.ru/",
 			want: want{
-				contentType: "text/plain",
+				contentType: "text/plain; charset=utf-8",
 				statusCode:  http.StatusCreated,
 				body:        nil,
 			},
@@ -57,7 +55,7 @@ func TestCreateShortURLHandler(t *testing.T) {
 			name: "empty body",
 			body: "",
 			want: want{
-				contentType: "application/json",
+				contentType: "application/json; charset=utf-8",
 				statusCode:  http.StatusBadRequest,
 				body:        errs.NewError("Invalid request body", http.StatusBadRequest, "Bad Request"),
 			},
@@ -66,10 +64,12 @@ func TestCreateShortURLHandler(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			// Создание тестового запроса
 			request := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(tt.body))
 			w := httptest.NewRecorder()
-			r.ServeHTTP(w, request)
+			router.ServeHTTP(w, request)
 
+			// Проверка результата
 			result := w.Result()
 			defer result.Body.Close()
 
@@ -88,20 +88,19 @@ func TestCreateShortURLHandler(t *testing.T) {
 }
 
 func TestRedirectHandler(t *testing.T) {
-	//cfg, err := config.LoadConfig()
-	//if err != nil {
-	//	log.Fatalf("failed to load config: %v", err)
-	//}
-
+	// Инициализация хранилища, репозитория и usecase
 	store := storage.NewMemoryStorage()
 	repo := repository.NewURLRepository(store)
 	urlUsecase := usecase.NewURLUsecase(repo)
 	h := handler.NewHandler(urlUsecase, BaseURL)
 
+	// Сохранение тестовой ссылки в хранилище
 	store.SaveURL("test1", "https://practicum.yandex.ru/")
 
-	r := mux.NewRouter()
-	r.HandleFunc("/{id}", h.Redirect).Methods("GET")
+	// Инициализация Gin маршрутов
+	gin.SetMode(gin.TestMode)
+	router := gin.Default()
+	router.GET("/:id", h.Redirect)
 
 	type want struct {
 		statusCode int
@@ -134,10 +133,12 @@ func TestRedirectHandler(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			// Создание тестового запроса
 			request := httptest.NewRequest(http.MethodGet, tt.request, nil)
 			w := httptest.NewRecorder()
-			r.ServeHTTP(w, request)
+			router.ServeHTTP(w, request)
 
+			// Проверка результата
 			result := w.Result()
 			defer result.Body.Close()
 
@@ -150,6 +151,86 @@ func TestRedirectHandler(t *testing.T) {
 				expectedBody, err := json.Marshal(tt.want.body)
 				require.NoError(t, err)
 				assert.JSONEq(t, string(expectedBody), string(body))
+			}
+		})
+	}
+}
+func TestHandler_ShortenJSON(t *testing.T) {
+	// Инициализация хранилища, репозитория и usecase
+	store := storage.NewMemoryStorage()
+	repo := repository.NewURLRepository(store)
+	urlUsecase := usecase.NewURLUsecase(repo)
+	h := handler.NewHandler(urlUsecase, BaseURL)
+
+	// Инициализация Gin маршрутов
+	gin.SetMode(gin.TestMode)
+	router := gin.Default()
+	router.POST("/api/shorten", h.ShortenJSON)
+
+	type want struct {
+		statusCode  int
+		contentType string
+		body        interface{}
+	}
+	tests := []struct {
+		name string
+		body string
+		want want
+	}{
+		//{
+		//	name: "valid JSON",
+		//	body: `{"url": "https://practicum.yandex.ru/"`,
+		//	want: want{
+		//		statusCode:  http.StatusCreated,
+		//		contentType: "application/json; charset=utf-8",
+		//		body:
+		//	},
+		//},
+		{
+			name: "empty JSON body",
+			body: `{}`,
+			want: want{
+				statusCode:  http.StatusBadRequest,
+				contentType: "application/json; charset=utf-8",
+				body:        errs.NewError("Invalid JSON body", http.StatusBadRequest, "Bad Request"),
+			},
+		},
+		{
+			name: "empty request body",
+			body: ``,
+			want: want{
+				statusCode:  http.StatusBadRequest,
+				contentType: "application/json; charset=utf-8",
+				body:        errs.NewError("Invalid JSON body", http.StatusBadRequest, "Bad Request"),
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Создание тестового запроса
+			req := httptest.NewRequest(http.MethodPost, "/api/shorten", strings.NewReader(tt.body))
+			req.Header.Set("Content-Type", "application/json")
+
+			// Запись ответа
+			w := httptest.NewRecorder()
+			router.ServeHTTP(w, req)
+
+			// Проверка результата
+			result := w.Result()
+			defer result.Body.Close()
+
+			assert.Equal(t, tt.want.statusCode, result.StatusCode)
+			assert.Equal(t, tt.want.contentType, result.Header.Get("Content-Type"))
+
+			if tt.want.body != nil {
+				body, err := io.ReadAll(result.Body)
+				require.NoError(t, err)
+				expectedBody, err := json.Marshal(tt.want.body)
+				require.NoError(t, err)
+				assert.JSONEq(t, string(expectedBody), string(body))
+			} else {
+				assert.NotEmpty(t, result.Body) // Должен быть непустой ответ
 			}
 		})
 	}

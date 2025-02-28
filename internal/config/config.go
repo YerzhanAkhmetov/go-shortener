@@ -15,6 +15,7 @@ type Config struct {
 	HTTPPort      string `env:"HTTP_PORT" envDefault:"8080"`
 	ServerAddress string `env:"SERVER_ADDRESS" envDefault:"localhost"`
 	BaseURL       string `env:"BASE_URL" envDefault:"http://localhost:8080"`
+	LogLevel      string `env:"LOG_LEVEL" envDefault:"info"`
 }
 
 // LoadConfig загружает конфигурацию из переменных окружения и аргументов командной строки
@@ -32,10 +33,10 @@ func LoadConfig() (*Config, error) {
 	}
 
 	// Override with command line arguments
-	flag.StringVar(&cfg.HTTPPort, "p", cfg.HTTPPort, "HTTP port (e.g., 8080)")
-	flag.StringVar(&cfg.ServerAddress, "a", cfg.ServerAddress, "HTTP server address (e.g., localhost)")
-	flag.StringVar(&cfg.BaseURL, "b", cfg.BaseURL, "Base URL for shortened links (e.g., http://localhost:8888)")
-
+	flag.StringVar(&cfg.HTTPPort, "p", cfg.HTTPPort, "HTTP port (e.g., 8080)")                                   //./myapp -p 9090
+	flag.StringVar(&cfg.ServerAddress, "a", cfg.ServerAddress, "HTTP server address (e.g., localhost)")          //./myapp -a 127.0.0.1
+	flag.StringVar(&cfg.BaseURL, "b", cfg.BaseURL, "Base URL for shortened links (e.g., http://localhost:8888)") //./myapp -b http://mydomain.com
+	flag.StringVar(&cfg.LogLevel, "l", cfg.LogLevel, "Log level (debug, info, warn, error, fatal)")              //./myapp -l debug
 	flag.Parse()
 
 	// Override with environment variable SERVER_PORT if it exists
