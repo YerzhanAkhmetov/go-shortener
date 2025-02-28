@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"encoding/json"
+	"io"
 	"net/http"
 
 	"github.com/YerzhanAkhmetov/go-shortener/internal/errs"
@@ -20,6 +22,10 @@ func NewHandler(usc usecase.URLUsecase, baseURL string) *Handler {
 		usecase: usc,
 		BaseURL: baseURL,
 	}
+}
+
+type Req struct {
+	URL string `json:"url"`
 }
 
 // CreateShortURL обрабатывает запрос на создание короткой ссылки
@@ -53,17 +59,33 @@ func (h *Handler) Redirect(c *gin.Context) {
 	c.Redirect(http.StatusTemporaryRedirect, url.OriginalURL)
 }
 
-// ShortenJSON обрабатывает JSON запрос на сокращение ссылки
+// ShortenJSON обрабатывает JSON-запрос на сокращение ссылки
 func (h *Handler) ShortenJSON(c *gin.Context) {
-	var req struct {
-		URL string `json:"url"`
-	}
-
-	if err := c.ShouldBindJSON(&req); err != nil || req.URL == "" {
+	// Чтение тела запроса
+	body, err := io.ReadAll(c.Request.Body)
+	if err != nil || len(body) == 0 {
 		c.JSON(http.StatusBadRequest, errs.NewError("Invalid JSON body", http.StatusBadRequest, "Bad Request"))
 		return
 	}
 
+	// Парсинг JSON
+	var req Req
+	err = json.Unmarshal(body, &req)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": "Failed to Unmarshall body",
+			"error":   err.Error(),
+		})
+		return
+	}
+
+	// Проверяем, передан ли URL
+	if req.URL == "" {
+		c.JSON(http.StatusBadRequest, errs.NewError("Invalid JSON body", http.StatusBadRequest, "Bad Request"))
+		return
+	}
+
+	// Генерация короткого URL
 	url, err := h.usecase.Create(req.URL)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, errs.NewError("Error generating URL ID", http.StatusInternalServerError, "Internal Server Error"))

@@ -20,23 +20,23 @@ func NewRest() *Rest {
 }
 
 // Start запускает сервер
-func (r *Rest) Start(lAddr string, h *Handler) {
-	logger.Log.Info("Running server", zap.String("address", lAddr))
+func (r *Rest) Start(host string, h *Handler) {
+	logger.Log.Info("Running server", zap.String("address", host))
 
 	// Устанавливаем режим Gin
 	gin.SetMode(gin.ReleaseMode)
 
 	// Создаем маршрутизатор
-	engine := gin.Default()
-	engine.Use(logger.RequestLogger(logger.Log), gin.Recovery())
+	g := gin.Default()
+	g.Use(logger.RequestLogger(logger.Log), gin.Recovery())
 
 	// Устанавливаем маршруты
-	SetRoutes(engine, h)
+	SetRoutes(g, h)
 
 	// Настройка и запуск HTTP-сервера
 	r.server = &http.Server{
-		Addr:    lAddr,
-		Handler: engine,
+		Addr:    host,
+		Handler: g,
 	}
 
 	if err := r.server.ListenAndServe(); err != nil && err != http.ErrServerClosed {

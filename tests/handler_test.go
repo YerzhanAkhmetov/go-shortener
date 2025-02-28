@@ -155,3 +155,82 @@ func TestRedirectHandler(t *testing.T) {
 		})
 	}
 }
+func TestHandler_ShortenJSON(t *testing.T) {
+	// Инициализация хранилища, репозитория и usecase
+	store := storage.NewMemoryStorage()
+	repo := repository.NewURLRepository(store)
+	urlUsecase := usecase.NewURLUsecase(repo)
+	h := handler.NewHandler(urlUsecase, BaseURL)
+
+	// Инициализация Gin маршрутов
+	gin.SetMode(gin.TestMode)
+	router := gin.Default()
+	router.POST("/api/shorten", h.ShortenJSON)
+
+	type want struct {
+		statusCode  int
+		contentType string
+		body        interface{}
+	}
+	tests := []struct {
+		name string
+		body string
+		want want
+	}{
+		//{
+		//	name: "valid JSON",
+		//	body: `{"url": "https://practicum.yandex.ru/"`,
+		//	want: want{
+		//		statusCode:  http.StatusCreated,
+		//		contentType: "application/json; charset=utf-8",
+		//	},
+		//},
+		{
+			name: "empty JSON body",
+			body: `{}`,
+			want: want{
+				statusCode:  http.StatusBadRequest,
+				contentType: "application/json; charset=utf-8",
+				body:        errs.NewError("Invalid JSON body", http.StatusBadRequest, "Bad Request"),
+			},
+		},
+		{
+			name: "empty request body",
+			body: ``,
+			want: want{
+				statusCode:  http.StatusBadRequest,
+				contentType: "application/json; charset=utf-8",
+				body:        errs.NewError("Invalid JSON body", http.StatusBadRequest, "Bad Request"),
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Создание тестового запроса
+			req := httptest.NewRequest(http.MethodPost, "/api/shorten", strings.NewReader(tt.body))
+			req.Header.Set("Content-Type", "application/json")
+
+			// Запись ответа
+			w := httptest.NewRecorder()
+			router.ServeHTTP(w, req)
+
+			// Проверка результата
+			result := w.Result()
+			defer result.Body.Close()
+
+			assert.Equal(t, tt.want.statusCode, result.StatusCode)
+			assert.Equal(t, tt.want.contentType, result.Header.Get("Content-Type"))
+
+			if tt.want.body != nil {
+				body, err := io.ReadAll(result.Body)
+				require.NoError(t, err)
+				expectedBody, err := json.Marshal(tt.want.body)
+				require.NoError(t, err)
+				assert.JSONEq(t, string(expectedBody), string(body))
+			} else {
+				assert.NotEmpty(t, result.Body) // Должен быть непустой ответ
+			}
+		})
+	}
+}
