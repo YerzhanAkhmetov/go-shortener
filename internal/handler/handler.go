@@ -92,5 +92,5 @@ func (h *Handler) ShortenJSON(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"short_url": h.BaseURL + "/" + url.ID})
+	c.JSON(http.StatusCreated, gin.H{"result": h.BaseURL + "/" + url.ID})
 }
